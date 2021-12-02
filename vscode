@@ -1,0 +1,6 @@
+#!/bin/bash
+
+module load vscode
+code --no-sandbox
+module unload vscode
+

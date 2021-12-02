@@ -1,0 +1,45 @@
+#!/bin/bash
+
+SCRIPT=$0
+PARAM=$1
+EXTRA=$3
+
+SCRIPT_DIR=$(realpath $(dirname ${SCRIPT}))
+WORK_DIR=$(echo ${SCRIPT_DIR} | sed 's/bin/SynchWeb/g')
+
+cd ${SCRIPT_DIR}
+
+case $PARAM in
+'start')
+    gnome-terminal --tab --title='backend' -- ${SCRIPT} backend
+    gnome-terminal --tab --title='frontend' -- ${SCRIPT} frontend
+    ;;
+'backend')
+    cd ${WORK_DIR}
+    php -S 0.0.0.0:8000
+    ;;
+'frontend')
+    cd ${WORK_DIR}/client
+    if [[ $EXTRA == 'prod' ]]
+    then
+        EXTRA='-p --mode=production'
+        NODE_ENV='production'
+    else
+        EXTRA=''
+        NODE_ENV=''
+    fi
+    module load node
+    ./node_modules/.bin/webpack-dev-server --env.proxy.target=http://127.0.0.1:8000/ --host=127.0.0.1 --watch-poll $EXTRA
+    ;;
+'mysql')
+    cd ${WORK_DIR}/api
+    php ${SCRIPT_DIR}/mysql-config.php
+    ;;
+*)
+    echo -e "\n\nrun from the project working directory\n"
+    echo "../bin/start start\n"
+    echo "../bin/start mysql"
+    echo "../bin/start backend"
+    echo "../bin/start frontend"
+    ;;
+esac
